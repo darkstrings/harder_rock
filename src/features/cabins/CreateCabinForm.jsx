@@ -26,14 +26,13 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
   // react-hook-form custom hook
 
   function onSubmit(data) {
-    // Ensure data.image is defined and handle different types correctly
     const image = data.image ? (typeof data.image === "string" ? data.image : data.image[0]) : null;
 
     if (isEditSession) {
       editCabin(
         { newCabinData: { ...data, image }, id: editId },
         {
-          onSuccess: (data) => {
+          onSuccess: () => {
             reset();
             onCloseModal?.();
           },
@@ -43,7 +42,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
       createCabin(
         { ...data, image: image },
         {
-          onSuccess: (data) => {
+          onSuccess: () => {
             reset(), onCloseModal?.();
           },
         }
@@ -107,7 +106,7 @@ function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
           {...register("discount", {
             required: "Discount is required",
 
-            validate: (value) => value <= getValues().regularPrice || "Discount must be less than the regular price",
+            validate: (value) => value >= getValues().regularPrice || "Discount must be less than the regular price",
           })}
         />
       </FormRow>
