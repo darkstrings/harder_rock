@@ -1,6 +1,5 @@
 import styled from "styled-components";
 
-// In GlobalStyles, we have a bunch of css (the color pallette with the brand colors and greys etc) that mimics tailwind so here we combine those design tokens with StyledComponents using var()
 export const Input = styled.input`
   border: 1px solid var(--color-grey-300);
   background-color: var(--color-grey-0);
