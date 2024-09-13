@@ -39,7 +39,7 @@ function LoginForm() {
           disabled={isLoading}
         />
       </FormRowVertical>
-      <FormRowVertical label="Password (GibsonGTR11)">
+      <FormRowVertical label="Password (GibsonGTR11!)">
         <Input
           type="password"
           id="password"
