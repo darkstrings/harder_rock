@@ -83,7 +83,6 @@ function Toggle({ id }) {
 
   function handleClick(e) {
     e.stopPropagation();
-    // Putting e.stopPropagation here handles the event listening issue where it is basically clicked twice so clicking once counted as 2 so clicking the menu button again didn't close the menu
     const rect = e.target.closest("button").getBoundingClientRect();
     setPosition({
       x: window.innerWidth - rect.width - rect.x,
