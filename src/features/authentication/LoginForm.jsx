@@ -28,7 +28,7 @@ function LoginForm() {
 
   return (
     <Form onSubmit={handleSubmit}>
-      <FormRowVertical label="Email address (john@doe.com)">
+      <FormRowVertical label="Email address: john@doe.com">
         <Input
           type="email"
           id="email"
@@ -39,7 +39,7 @@ function LoginForm() {
           disabled={isLoading}
         />
       </FormRowVertical>
-      <FormRowVertical label="Password (GibsonGTR11!)">
+      <FormRowVertical label="Password: GibsonGTR11!">
         <Input
           type="password"
           id="password"
