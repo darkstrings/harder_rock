@@ -36,7 +36,7 @@ function App() {
         set "client" to the var you make above from the new QueryClient above
         install the devtools with "npm i @tanstack/react-query-devtools" apply it by putting it just below QueryClientProvider
         */}
-        <ReactQueryDevtools initialIsOpen={false} />.
+        <ReactQueryDevtools initialIsOpen={false} />
         {/* 
       2 changes from ReactQueryDevTools v4 to v5:
        isLoading is now called isPending
