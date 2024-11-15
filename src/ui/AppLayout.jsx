@@ -7,7 +7,7 @@ const StyledAppLayout = styled.div`
   display: grid;
   height: 100vh;
   grid-template-columns: auto 1fr;
-  grid-template-rows: 26rem 1fr;
+  grid-template-rows: 14rem 1fr;
 `;
 
 const Main = styled.main`
