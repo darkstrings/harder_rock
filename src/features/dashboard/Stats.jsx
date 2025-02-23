@@ -1,6 +1,7 @@
 import Stat from "./Stat";
 import { HiOutlineBriefcase, HiOutlineCurrencyDollar, HiOutlineCalendar, HiOutlineChartBar } from "react-icons/hi";
 import { formatCurrency } from "../../utils/helpers";
+import styled from "styled-components";
 
 function Stats({ bookings, confirmedStays, numDays, cabinCount }) {
   //Number of bookings

@@ -11,14 +11,25 @@ const LoginLayout = styled.main`
   justify-content: center;
   gap: 3.2rem;
   background-color: var(--color-grey-0);
+  @media (max-width: 500px) {
+    grid-template-columns: 30rem;
+  }
+`;
+
+const StyledHeading = styled(Heading)`
+  @media (max-width: 500px) {
+    font-size: 2rem;
+  }
 `;
 
 function Login() {
   return (
     <LoginLayout>
       <Logo />
-      <Heading as="h4">Log in to your account</Heading>
+      <StyledHeading as="h4">Log in to your account</StyledHeading>
       <LoginForm />
+      <StyledHeading as="h4">Made with terminals in a hotel in mind.</StyledHeading>
+      <StyledHeading as="h4">Not for mobile.</StyledHeading>
     </LoginLayout>
   );
 }
