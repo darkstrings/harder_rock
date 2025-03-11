@@ -1,6 +1,6 @@
 # 🎸 Harder Rock Hotel
 
-**Harder Rock Hotel** is a fictional **rock music-themed hotel website**, designed with a focus on large-screen desktop monitors. Featuring cabins for music lovers and a striking rock aesthetic, the project showcases creativity and tech expertise.
+**Harder Rock Hotel** is a fictional **rock music-themed hotel website**, designed with a focus on large-screen desktop monitors. Featuring cabins for music lovers and a striking rock aesthetic, the project showcases creativity and tech expertise. Contact me if you want to take the admin privileges for a spin.
 
 ---
 
