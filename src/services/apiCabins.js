@@ -1,61 +1,39 @@
-import supabase, { supabaseUrl } from "./supabase";
+import { collection, doc, getDocs, setDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "./firebaseClient";
 
+// Get all cabins
 export default async function getCabins() {
-  const { data, error } = await supabase.from("cabins").select("*");
-  if (error) {
-    console.error(error);
-    throw new Error("cabins could not be loaded");
-  }
-  return data;
+  const snapshot = await getDocs(collection(db, "cabins"));
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
+// Create or edit a cabin
 export async function createEditCabin(newCabin, id) {
-  const hasImagePath = newCabin.image?.startsWith?.(supabaseUrl);
+  let imagePath = newCabin.image;
 
-  let imageName = null;
-  let imagePath = null;
-
-  if (newCabin.image) {
-    imageName = `${Math.random()}-${newCabin.image.name}`.replaceAll("/", "");
-    imagePath = hasImagePath ? newCabin.image : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
+  // Upload image if it's a File object
+  if (newCabin.image instanceof File) {
+    const imageName = `${Math.random()}-${newCabin.image.name}`.replaceAll("/", "");
+    const imageRef = ref(storage, `cabin-images/${imageName}`);
+    await uploadBytes(imageRef, newCabin.image);
+    imagePath = await getDownloadURL(imageRef);
   }
 
-  let query = supabase.from("cabins");
+  const cabinData = { ...newCabin, image: imagePath };
 
   if (!id) {
-    query = query.insert([{ ...newCabin, image: imagePath }]);
+    const newDocRef = doc(collection(db, "cabins"));
+    await setDoc(newDocRef, cabinData);
+    return { id: newDocRef.id, ...cabinData };
   } else {
-    query = query
-      .update({ ...newCabin, image: imagePath })
-      .eq("id", id)
-      .select();
+    const cabinRef = doc(db, "cabins", id);
+    await updateDoc(cabinRef, cabinData);
+    return { id, ...cabinData };
   }
-
-  const { data, error } = await query.single();
-
-  if (error) {
-    console.error(error);
-    throw new Error("cabin could not be created");
-  }
-
-  if (hasImagePath) return data;
-
-  if (newCabin.image && !hasImagePath) {
-    const { error: storageError } = await supabase.storage.from("cabin-images").upload(imageName, newCabin.image);
-    if (storageError) {
-      await supabase.from("cabins").delete().eq("id", data.id);
-      console.error(storageError);
-      throw new Error("Cabin image could not be uploaded. Cabin therefore not created.");
-    }
-  }
-
-  return data;
 }
 
+// Delete a cabin
 export async function deleteCabin(id) {
-  const { error } = await supabase.from("cabins").delete().eq("id", id);
-  if (error) {
-    console.error(error);
-    throw new Error("cabin(s) could not be deleted");
-  }
+  await deleteDoc(doc(db, "cabins", id));
 }

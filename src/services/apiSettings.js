@@ -1,27 +1,28 @@
-import supabase from "./supabase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "./firebaseClient";
 
+// Firestore: settings are stored in a single document with ID "app"
 export async function getSettings() {
-  const { data, error } = await supabase.from("settings").select("*").single();
+  const settingsRef = doc(db, "settings", "app");
+  const snapshot = await getDoc(settingsRef);
 
-  if (error) {
-    console.error(error);
+  if (!snapshot.exists()) {
     throw new Error("Settings could not be loaded");
   }
-  return data;
+
+  return snapshot.data();
 }
 
-// We expect a newSetting object that looks like {setting: newValue}
+// newSetting is an object like { theme: "dark" }
 export async function updateSetting(newSetting) {
-  const { data, error } = await supabase
-    .from("settings")
-    .update(newSetting)
-    // There is only ONE row of settings, and it has the ID=1, and so this is the updated one
-    .eq("id", 1)
-    .single();
+  const settingsRef = doc(db, "settings", "app");
 
-  if (error) {
+  try {
+    await updateDoc(settingsRef, newSetting);
+    const updated = await getDoc(settingsRef);
+    return updated.data();
+  } catch (error) {
     console.error(error);
     throw new Error("Settings could not be updated");
   }
-  return data;
 }

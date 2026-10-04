@@ -1,81 +1,57 @@
-/*
- * REMEMBER TO UPDATE THE URL CONFIGURATION TO THE NEW SERVER URLs WHEN YOU DEPLOY
- */
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updatePassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "./firebaseClient";
 
-import supabase, { supabaseUrl } from "./supabase";
-
+// Signup: create user and store profile in Firestore
 export async function signup({ fullName, email, password }) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        fullName,
-        avatar: "",
-      },
-    },
-  });
-  if (error) throw new Error(error.message);
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const user = userCredential.user;
 
-  return data;
+  await setDoc(doc(db, "users", user.uid), {
+    fullName,
+    email,
+    avatar: "",
+  });
+
+  return { user };
 }
 
+// Login
 export async function login({ email, password }) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) throw new Error(error.message);
-
-  return data;
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
 }
 
+// Get current user
 export async function getCurrentUser() {
-  const { data: session } = await supabase.auth.getSession();
-  if (!session.session) return null;
-
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) throw new Error(error.message);
-
-  return data?.user;
-}
-
-export async function logout() {
-  const { error } = await supabase.auth.signOut();
-
-  if (error) throw new Error(error.message);
-}
-
-export async function updateCurrentUser({ password, fullName, avatar }) {
-  // 1. update password or fullName
-  let updateData = {};
-  if (password) {
-    updateData.password = password;
-  }
-  if (fullName) {
-    updateData.data = { full_name: fullName };
-  }
-
-  const { data, error } = await supabase.auth.updateUser(updateData);
-  if (error) throw new Error(error.message);
-  if (!avatar) return data;
-
-  // 2. upload avatar image
-
-  const fileName = `avatar-${data.user.id}-${Math.random()}`;
-  const { error: storageError } = await supabase.storage.from("avatars").upload(fileName, avatar);
-  // In the object returned is the response of the upload operation.....if error is in there, destructure that out and name it storageError
-
-  if (storageError) throw new Error(storageError.message);
-
-  // 3. update avatar in the user
-  const { data: updatedUser, error: updateUserError } = await supabase.auth.updateUser({
-    data: {
-      avatar: `${supabaseUrl}/storage/v1/object/public/avatars/${fileName}`,
-    },
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe();
+      resolve(user || null);
+    });
   });
-  if (updateUserError) throw new Error(updateUserError.message);
-  return updatedUser;
+}
+
+// Logout
+export async function logout() {
+  await signOut(auth);
+}
+
+// Update user profile
+export async function updateCurrentUser({ password, fullName, avatar }) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No authenticated user");
+
+  // 1. Update password
+  if (password) await updatePassword(user, password);
+
+  // 2. Update Firestore profile
+  const userRef = doc(db, "users", user.uid);
+  const updateData = {};
+  if (fullName) updateData.fullName = fullName;
+  if (avatar) updateData.avatar = avatar;
+
+  await updateDoc(userRef, updateData);
+
+  return { user };
 }

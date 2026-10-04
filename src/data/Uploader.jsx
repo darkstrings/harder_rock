@@ -1,60 +1,65 @@
 import { useState } from "react";
 import { isFuture, isPast, isToday } from "date-fns";
-import supabase from "../services/supabase";
-import Button from "../ui/Button";
 import { subtractDates } from "../utils/helpers";
+import Button from "../ui/Button";
 
 import { bookings } from "./data-bookings";
 import { cabins } from "./data-cabins";
 import { guests } from "./data-guests";
 
+import { collection, deleteDoc, doc, getDocs, setDoc, query, orderBy } from "firebase/firestore";
+import { db } from "../services/firebaseClient";
+
 console.log(cabins, guests, bookings);
 
-// const originalSettings = {
-//   minBookingLength: 3,
-//   maxBookingLength: 30,
-//   maxGuestsPerBooking: 10,
-//   breakfastPrice: 15,
-// };
+// 🔥 DELETE
+async function deleteCollection(name) {
+  const snapshot = await getDocs(collection(db, name));
+  const deletions = snapshot.docs.map((docSnap) => deleteDoc(doc(db, name, docSnap.id)));
+  await Promise.all(deletions);
+}
 
 async function deleteGuests() {
-  const { error } = await supabase.from("guests").delete().gt("id", 0);
-  if (error) console.log(error.message);
+  await deleteCollection("guests");
 }
 
 async function deleteCabins() {
-  const { error } = await supabase.from("cabins").delete().gt("id", 0);
-  if (error) console.log(error.message);
+  await deleteCollection("cabins");
 }
 
 async function deleteBookings() {
-  const { error } = await supabase.from("bookings").delete().gt("id", 0);
-  if (error) console.log(error.message);
+  await deleteCollection("bookings");
 }
 
+// ✅ CREATE
 async function createGuests() {
-  const { error } = await supabase.from("guests").insert(guests);
-  if (error) console.log(error.message);
+  const inserts = guests.map((guest) => {
+    const id = crypto.randomUUID();
+    return setDoc(doc(db, "guests", id), guest);
+  });
+  await Promise.all(inserts);
 }
 
 async function createCabins() {
-  const { error } = await supabase.from("cabins").insert(cabins);
-  if (error) console.log(error.message);
+  const inserts = cabins.map((cabin) => {
+    const id = crypto.randomUUID();
+    return setDoc(doc(db, "cabins", id), cabin);
+  });
+  await Promise.all(inserts);
 }
 
 async function createBookings() {
-  // Bookings need a guestId and a cabinId. We can't tell Supabase IDs for each object, it will calculate them on its own. So it might be different for different people, especially after multiple uploads. Therefore, we need to first get all guestIds and cabinIds, and then replace the original IDs in the booking data with the actual ones from the DB
-  const { data: guestsIds } = await supabase.from("guests").select("id").order("id");
-  const allGuestIds = guestsIds.map((cabin) => cabin.id);
-  const { data: cabinsIds } = await supabase.from("cabins").select("id").order("id");
-  const allCabinIds = cabinsIds.map((cabin) => cabin.id);
+  const guestSnap = await getDocs(query(collection(db, "guests"), orderBy("id")));
+  const cabinSnap = await getDocs(query(collection(db, "cabins"), orderBy("id")));
+
+  const allGuestIds = guestSnap.docs.map((doc) => doc.id);
+  const allCabinIds = cabinSnap.docs.map((doc) => doc.id);
 
   const finalBookings = bookings.map((booking) => {
-    // Here relying on the order of cabins, as they don't have and ID yet
     const cabin = cabins.at(booking.cabinId - 1);
     const numNights = subtractDates(booking.endDate, booking.startDate);
     const cabinPrice = numNights * (cabin.regularPrice - cabin.discount);
-    const extrasPrice = booking.hasBreakfast ? numNights * 15 * booking.numGuests : 0; // hardcoded breakfast price
+    const extrasPrice = booking.hasBreakfast ? numNights * 15 * booking.numGuests : 0;
     const totalPrice = cabinPrice + extrasPrice;
 
     let status;
@@ -79,10 +84,12 @@ async function createBookings() {
     };
   });
 
-  console.log(finalBookings);
+  const inserts = finalBookings.map((booking) => {
+    const id = crypto.randomUUID();
+    return setDoc(doc(db, "bookings", id), booking);
+  });
 
-  const { error } = await supabase.from("bookings").insert(finalBookings);
-  if (error) console.log(error.message);
+  await Promise.all(inserts);
 }
 
 function Uploader() {
@@ -90,16 +97,13 @@ function Uploader() {
 
   async function uploadAll() {
     setIsLoading(true);
-    // Bookings need to be deleted FIRST
     await deleteBookings();
     await deleteGuests();
     await deleteCabins();
 
-    // Bookings need to be created LAST
     await createGuests();
     await createCabins();
     await createBookings();
-
     setIsLoading(false);
   }
 

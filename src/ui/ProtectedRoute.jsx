@@ -13,32 +13,27 @@ const FullPage = styled.div`
 `;
 
 function ProtectedRoute({ children }) {
-  // This is to not let someone access the page without being logged in
-
   const navigate = useNavigate();
-
-  // 1. load the authenticated user
   const { isLoading, isAuthenticated } = useUser();
-  // Gets the user from useUser() which gets that data from getCurrentUser() in apiAuth.js
 
-  // 2. If there's no authenticated user, redirect to login
-  useEffect(
-    function () {
-      if (!isAuthenticated && !isLoading) navigate("/login");
-    },
-    [isAuthenticated, isLoading, navigate]
-  );
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      console.log("Redirecting to login");
+      navigate("/login");
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
-  // 3. Show a spinner while loading
-  if (isLoading)
+  if (isLoading) {
     return (
       <FullPage>
-        <Spinner />;
+        <Spinner />
       </FullPage>
     );
+  }
 
-  if (isAuthenticated) return children;
+  return isAuthenticated ? children : null;
 }
+
 
 export default ProtectedRoute;
 
