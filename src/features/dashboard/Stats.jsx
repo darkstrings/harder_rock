@@ -1,31 +1,24 @@
+import { BedDouble, CalendarCheck, DollarSign, Ticket } from "lucide-react";
 import Stat from "./Stat";
-import { HiOutlineBriefcase, HiOutlineCurrencyDollar, HiOutlineCalendar, HiOutlineChartBar } from "react-icons/hi";
-import { formatCurrency } from "../../utils/helpers";
-import styled from "styled-components";
+import { formatCurrency } from "../../lib/utils";
 
-function Stats({ bookings, confirmedStays, numDays, cabinCount }) {
-  //Number of bookings
-  const numBookings = bookings.length;
-
-  //   Total sales
-  //   const sales = bookings.reduce((acc, cur) => acc + cur.totalPrice, 0); // 0 is the starting value
-  const sales = bookings.reduce((acc, cur) => acc + cur.totalPrice, 0);
-
-  //   confirmedStays stays
-  const checkins = confirmedStays.length;
-
-  //occupancy rate
-  //   num of checked in nights / all available nights
-  const occupation = confirmedStays.reduce((acc, cur) => acc + cur.numNights, 0) / (numDays * cabinCount);
+export default function Stats({ bookings, confirmedStays, numDays, cabinCount }) {
+  const sales = bookings.reduce((sum, b) => sum + b.totalPrice, 0);
+  const nights = confirmedStays.reduce((sum, s) => sum + s.numNights, 0);
+  const occupancy = cabinCount ? Math.min(1, nights / (numDays * cabinCount)) : 0;
 
   return (
-    <>
-      <Stat title="Bookings" color="blue" icon={<HiOutlineBriefcase />} value={numBookings} />
-      <Stat title="Sales" color="green" icon={<HiOutlineCurrencyDollar />} value={formatCurrency(sales)} />
-      <Stat title="Check-ins" color="indigo" icon={<HiOutlineCalendar />} value={checkins} />
-      <Stat title="Occupancy Rate" color="Yellow" icon={<HiOutlineChartBar />} value={Math.round(occupation * 100) + "%"} />
-    </>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <Stat icon={Ticket} title="Bookings" value={bookings.length} hint={`made in the last ${numDays} days`} tone="blue" />
+      <Stat icon={DollarSign} title="Sales" value={formatCurrency(sales)} hint="from those bookings" tone="green" />
+      <Stat icon={CalendarCheck} title="Check-ins" value={confirmedStays.length} hint="stays started" tone="accent" />
+      <Stat
+        icon={BedDouble}
+        title="Occupancy"
+        value={`${Math.round(occupancy * 100)}%`}
+        hint={`${nights} of ${numDays * cabinCount} cabin-nights`}
+        tone="yellow"
+      />
+    </div>
   );
 }
-
-export default Stats;

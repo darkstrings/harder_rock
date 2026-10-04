@@ -1,94 +1,105 @@
-import styled from "styled-components";
-import DashboardBox from "./DashboardBox";
-import Heading from "../../ui/Heading";
-import { AreaChart, Area, CartesianGrid, Tooltip, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import useDarkMode from "../../hooks/useDarkMode";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { eachDayOfInterval, format, isSameDay, subDays } from "date-fns";
+import { useTheme } from "../../context/ThemeContext";
+import ChartTooltip from "./ChartTooltip";
+import { formatCurrency } from "../../lib/utils";
 
-const StyledSalesChart = styled(DashboardBox)`
-  grid-column: 1 / -1;
+// Validated pair (dataviz palette check): passes CVD + contrast in both modes.
+const SERIES = {
+  light: { cabin: "#e11d48", extras: "#7c3aed", grid: "#e2ddd6", text: "#6b6470" },
+  dark: { cabin: "#ff3d5a", extras: "#9085e9", grid: "#2a2630", text: "#a39cab" },
+};
 
-  /* Hack to change grid line colors */
-  & .recharts-cartesian-grid-horizontal line,
-  & .recharts-cartesian-grid-vertical line {
-    stroke: var(--color-grey-300);
-  }
-`;
+export default function SalesChart({ bookings, numDays }) {
+  const { isDark } = useTheme();
+  const c = SERIES[isDark ? "dark" : "light"];
 
-function SalesChart({ bookings, numDays }) {
-  const { isDarkMode } = useDarkMode();
-
-  const allDates = eachDayOfInterval({
-    start: subDays(new Date(), numDays - 1),
-    end: new Date(),
-  });
-
-  const data = allDates.map((date) => {
-    const bookingsForDate = bookings.filter((booking) => isSameDay(date, new Date(booking.created_at)));
-
-    const totalSales = bookingsForDate.reduce((acc, cur) => {
-      const totalPrice = typeof cur.totalPrice === "number" ? cur.totalPrice : 0;
-      return acc + totalPrice;
-    }, 0);
-
-    const extrasSales = bookingsForDate.reduce((acc, cur) => {
-      const extrasSales = typeof cur.extrasSales === "number" ? cur.extrasSales : 0;
-      return acc + extrasSales;
-    }, 0);
-
+  const days = eachDayOfInterval({ start: subDays(new Date(), numDays - 1), end: new Date() });
+  const data = days.map((date) => {
+    const todays = bookings.filter((b) => isSameDay(date, new Date(b.createdAt)));
     return {
-      label: format(date, "MMM dd"),
-      totalSales,
-      extrasSales,
+      label: format(date, "MMM d"),
+      cabin: todays.reduce((s, b) => s + b.cabinPrice, 0),
+      extras: todays.reduce((s, b) => s + b.extrasPrice, 0),
     };
   });
-  const colors = isDarkMode
-    ? {
-        totalSales: { stroke: "#4f46e5", fill: "#4f46e5" },
-        extrasSales: { stroke: "#22c55e", fill: "#22c55e" },
-        text: "#e5e7eb",
-        background: "#18212f",
-      }
-    : {
-        totalSales: { stroke: "#4f46e5", fill: "#c7d2fe" },
-        extrasSales: { stroke: "#16a34a", fill: "#dcfce7" },
-        text: "#374151",
-        background: "#fff",
-      };
+  const total = data.reduce((s, d) => s + d.cabin + d.extras, 0);
 
   return (
-    <StyledSalesChart>
-      <Heading as="h2">
-        Sales from {format(allDates.at(0), "MMM dd yyy")} &mdash; {format(allDates.at(-1), "MMM dd yyy")}
-      </Heading>
-      <ResponsiveContainer height={300} width={"100%"}>
-        <AreaChart data={data}>
-          <CartesianGrid strokeDasharray="4" />
-          <XAxis dataKey="label" tick={{ fill: colors.text }} tickLine={{ stroke: colors.text }} />
-          <YAxis unit="$" tick={{ fill: colors.text }} tickLine={{ stroke: colors.text }} />
-          <Tooltip contentStyle={{ backgroundColor: colors.background }} />
-          <Area
-            dataKey="totalSales"
-            type="monotone"
-            stroke={colors.totalSales.stroke}
-            fill={colors.totalSales.fill}
-            strokeWidth={2}
-            name="Total Sales"
-            unit="$"
-          />
-          <Area
-            dataKey="extrasSales"
-            type="monotone"
-            stroke={colors.extrasSales.stroke}
-            fill={colors.extrasSales.fill}
-            strokeWidth={2}
-            name="Extras Sales"
-            unit="$"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </StyledSalesChart>
+    <section className="card p-5 sm:p-6" aria-labelledby="sales-title">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 id="sales-title" className="font-semibold">
+            Sales
+          </h2>
+          <p className="text-xs text-muted">
+            {format(days[0], "MMM d")} – {format(days.at(-1), "MMM d, yyyy")} · {formatCurrency(total)} total
+          </p>
+        </div>
+        <ul className="flex gap-4 text-xs text-muted" aria-label="Legend">
+          <li className="flex items-center gap-2">
+            <span className="size-2.5 rounded-sm" style={{ background: c.cabin }} /> Cabin revenue
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="size-2.5 rounded-sm" style={{ background: c.extras }} /> Extras
+          </li>
+        </ul>
+      </div>
+      <div className="h-64 sm:h-72" role="img" aria-label={`Daily sales chart, ${formatCurrency(total)} total`}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 4, right: 4, left: -8, bottom: 0 }}>
+            <defs>
+              <linearGradient id="fill-cabin" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c.cabin} stopOpacity={0.35} />
+                <stop offset="100%" stopColor={c.cabin} stopOpacity={0.02} />
+              </linearGradient>
+              <linearGradient id="fill-extras" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={c.extras} stopOpacity={0.45} />
+                <stop offset="100%" stopColor={c.extras} stopOpacity={0.05} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke={c.grid} strokeDasharray="3 3" />
+            <XAxis
+              dataKey="label"
+              tick={{ fill: c.text, fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: c.grid }}
+              minTickGap={24}
+            />
+            <YAxis
+              tick={{ fill: c.text, fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v) => (v >= 1000 ? `$${v / 1000}k` : `$${v}`)}
+              width={52}
+            />
+            <Tooltip
+              content={<ChartTooltip currency total />}
+              cursor={{ stroke: c.text, strokeWidth: 1, strokeDasharray: "4 4" }}
+            />
+            <Area
+              type="monotone"
+              dataKey="extras"
+              name="Extras"
+              stackId="sales"
+              stroke={c.extras}
+              strokeWidth={2}
+              fill="url(#fill-extras)"
+              activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface)" }}
+            />
+            <Area
+              type="monotone"
+              dataKey="cabin"
+              name="Cabin revenue"
+              stackId="sales"
+              stroke={c.cabin}
+              strokeWidth={2}
+              fill="url(#fill-cabin)"
+              activeDot={{ r: 4, strokeWidth: 2, stroke: "var(--surface)" }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
   );
 }
-
-export default SalesChart;

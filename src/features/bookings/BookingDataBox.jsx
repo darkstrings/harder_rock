@@ -1,170 +1,102 @@
-import styled from "styled-components";
-import { format, isToday } from "date-fns";
-import { HiOutlineChatBubbleBottomCenterText, HiOutlineCheckCircle, HiOutlineCurrencyDollar, HiOutlineHomeModern } from "react-icons/hi2";
+import { BedDouble, CalendarRange, CircleDollarSign, Coffee, IdCard, Mail, MessageSquareQuote, Users } from "lucide-react";
+import Flag from "../../components/ui/Flag";
+import { StatusBadge } from "../../components/ui/Badge";
+import { resolveImage } from "../../lib/images";
+import { cn, formatCurrency, formatDate, relativeDay } from "../../lib/utils";
 
-import DataItem from "../../ui/DataItem";
-import { Flag } from "../../ui/Flag";
-
-import { formatDistanceFromNow, formatCurrency } from "../../utils/helpers";
-
-const StyledBookingDataBox = styled.section`
-  /* Box */
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  border-radius: var(--border-radius-md);
-
-  overflow: hidden;
-`;
-
-const Header = styled.header`
-  background-color: var(--color-brand-500);
-  padding: 2rem 4rem;
-  color: #e0e7ff;
-  font-size: 1.8rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  svg {
-    height: 3.2rem;
-    width: 3.2rem;
-  }
-
-  & div:first-child {
-    display: flex;
-    align-items: center;
-    gap: 1.6rem;
-    font-weight: 600;
-    font-size: 1.8rem;
-  }
-
-  & span {
-    font-size: 2rem;
-    margin-left: 4px;
-  }
-`;
-
-const Section = styled.section`
-  padding: 3.2rem 4rem 1.2rem;
-`;
-
-const Guest = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1.2rem;
-  margin-bottom: 1.6rem;
-  color: var(--color-grey-500);
-
-  & p:first-of-type {
-    font-weight: 500;
-    color: var(--color-grey-700);
-  }
-`;
-
-const Price = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.6rem 3.2rem;
-  border-radius: var(--border-radius-sm);
-  margin-top: 2.4rem;
-
-  background-color: ${(props) => (props.isPaid ? "var(--color-green-100)" : "var(--color-yellow-100)")};
-  color: ${(props) => (props.isPaid ? "var(--color-green-700)" : "var(--color-yellow-700)")};
-
-  & p:last-child {
-    text-transform: uppercase;
-    font-size: 1.4rem;
-    font-weight: 600;
-  }
-
-  svg {
-    height: 2.4rem;
-    width: 2.4rem;
-    color: currentColor !important;
-  }
-`;
-
-const Footer = styled.footer`
-  padding: 1.6rem 4rem;
-  font-size: 1.2rem;
-  color: var(--color-grey-500);
-  text-align: right;
-`;
-
-// A purely presentational component
-function BookingDataBox({ booking }) {
-  const {
-    created_at,
-    startDate,
-    endDate,
-    numNights,
-    numGuests,
-    cabinPrice,
-    extrasPrice,
-    totalPrice,
-    hasBreakfast,
-    observations,
-    isPaid,
-    guests: { fullName: guestName, email, country, countryFlag, nationalID },
-    cabins: { name: cabinName },
-  } = booking;
-
+function Item({ icon: Icon, label, children }) {
   return (
-    <StyledBookingDataBox>
-      <Header>
-        <div>
-          <HiOutlineHomeModern />
-          <p>
-            {numNights} nights in Cabin <span>{cabinName}</span>
-          </p>
-        </div>
-
-        <p>
-          {format(new Date(startDate), "EEE, MMM dd yyyy")} ({isToday(new Date(startDate)) ? "Today" : formatDistanceFromNow(startDate)})
-          &mdash; {format(new Date(endDate), "EEE, MMM dd yyyy")}
-        </p>
-      </Header>
-
-      <Section>
-        <Guest>
-          {countryFlag && <Flag src={countryFlag} alt={`Flag of ${country}`} />}
-          <p>
-            {guestName} {numGuests > 1 ? `+ ${numGuests - 1} guests` : ""}
-          </p>
-          <span>&bull;</span>
-          <p>{email}</p>
-          <span>&bull;</span>
-          <p>National ID {nationalID}</p>
-        </Guest>
-
-        {observations && (
-          <DataItem icon={<HiOutlineChatBubbleBottomCenterText />} label="Observations">
-            {observations}
-          </DataItem>
-        )}
-
-        <DataItem icon={<HiOutlineCheckCircle />} label="Breakfast included?">
-          {hasBreakfast ? "Yes" : "No"}
-        </DataItem>
-
-        <Price $isPaid={isPaid}>
-          <DataItem icon={<HiOutlineCurrencyDollar />} label={`Total price`}>
-            {formatCurrency(totalPrice)}
-
-            {hasBreakfast && ` (${formatCurrency(cabinPrice)} cabin + ${formatCurrency(extrasPrice)} breakfast)`}
-          </DataItem>
-
-          <p>{isPaid ? "Paid" : "Will pay at property"}</p>
-        </Price>
-      </Section>
-
-      <Footer>
-        <p>Booked {format(new Date(created_at), "EEE, MMM dd yyyy, p")}</p>
-      </Footer>
-    </StyledBookingDataBox>
+    <div className="flex gap-3">
+      <Icon className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden="true" />
+      <div className="min-w-0">
+        <p className="text-xs font-semibold tracking-wider text-muted uppercase">{label}</p>
+        <div className="mt-0.5 text-sm">{children}</div>
+      </div>
+    </div>
   );
 }
 
-export default BookingDataBox;
+/** Purely presentational summary of a booking. */
+export default function BookingDataBox({ booking }) {
+  const { cabin, guest } = booking;
+  const image = resolveImage(cabin.image);
+
+  return (
+    <section className="card overflow-hidden">
+      <header className="relative isolate overflow-hidden px-6 py-6 text-white sm:px-8">
+        {image && <img src={image} alt="" className="absolute inset-0 -z-10 size-full object-cover" />}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-black/90 via-black/70 to-black/30" />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.2em] text-[#ff3d5a] uppercase">
+              {booking.numNights} nights in
+            </p>
+            <h2 className="font-display text-3xl tracking-wide sm:text-4xl">{cabin.name}</h2>
+          </div>
+          <span className="rounded-full bg-black/70 p-0.5 backdrop-blur">
+            <StatusBadge status={booking.status} />
+          </span>
+        </div>
+        <p className="mt-3 flex items-center gap-2 text-sm text-white/80">
+          <CalendarRange className="size-4" aria-hidden="true" />
+          {formatDate(booking.startDate, "EEE, MMM d yyyy")} ({relativeDay(booking.startDate)}) →{" "}
+          {formatDate(booking.endDate, "EEE, MMM d yyyy")}
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 gap-6 p-6 sm:grid-cols-2 sm:p-8">
+        <Item icon={Users} label="Guest">
+          <span className="flex items-center gap-2 font-semibold">
+            <Flag code={guest.countryCode} country={guest.nationality} />
+            {guest.fullName}
+          </span>
+          <span className="text-muted">
+            {booking.numGuests > 1 ? `+ ${booking.numGuests - 1} more guest${booking.numGuests > 2 ? "s" : ""}` : "Solo stay"}
+          </span>
+        </Item>
+        <Item icon={Mail} label="Contact">
+          <a href={`mailto:${guest.email}`} className="hover:text-accent">
+            {guest.email}
+          </a>
+        </Item>
+        <Item icon={IdCard} label="National ID">
+          {guest.nationalId || "—"} {guest.nationality && <span className="text-muted">· {guest.nationality}</span>}
+        </Item>
+        <Item icon={Coffee} label="Breakfast">
+          {booking.hasBreakfast ? "Included" : "Not included"}
+        </Item>
+        <Item icon={BedDouble} label="Cabin">
+          Sleeps {cabin.maxCapacity} · {formatCurrency(cabin.regularPrice)}/night
+        </Item>
+        {booking.observations && (
+          <Item icon={MessageSquareQuote} label="Guest notes">
+            <span className="italic">“{booking.observations}”</span>
+          </Item>
+        )}
+      </div>
+
+      <div
+        className={cn(
+          "mx-6 mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl px-5 py-4 sm:mx-8",
+          booking.isPaid ? "bg-ok-soft text-ok" : "bg-warn-soft text-warn",
+        )}>
+        <div className="flex items-center gap-3">
+          <CircleDollarSign className="size-6" aria-hidden="true" />
+          <div>
+            <p className="text-lg font-bold tabular-nums">{formatCurrency(booking.totalPrice, true)}</p>
+            {booking.extrasPrice > 0 && (
+              <p className="text-xs opacity-80">
+                {formatCurrency(booking.cabinPrice)} cabin + {formatCurrency(booking.extrasPrice)} breakfast
+              </p>
+            )}
+          </div>
+        </div>
+        <p className="text-xs font-bold tracking-wider uppercase">{booking.isPaid ? "Paid" : "Will pay at property"}</p>
+      </div>
+
+      <footer className="border-t border-border px-6 py-3 text-right text-xs text-muted sm:px-8">
+        Booked {formatDate(booking.createdAt, "EEE, MMM d yyyy, p")}
+      </footer>
+    </section>
+  );
+}

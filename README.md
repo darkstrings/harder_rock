@@ -1,49 +1,68 @@
-🎸 Harder Rock Hotel
-Harder Rock Hotel is a fictional rock music-themed hotel admin dashboard, designed for large-screen desktop monitors. It features expressive UI, dynamic data handling, and a modular architecture built for real-world deployment. Whether you're into Eddie Van Halen’s stripes or Dream Theater’s complexity, this app hits the right notes.
+# 🎸 Harder Rock Hotel
 
-🌟 Features
-- Desktop-First Design: Crafted for large monitors with pixel-perfect layout and intentional non-responsiveness.
-- Firebase Integration: Auth, Firestore, and Storage power the backend—secure, scalable, and real-time.
-- Dynamic Theming: Built with styled-components and modular CSS for expressive, brandable UI.
-- Robust Data Handling: React Query, error boundaries, and custom hooks ensure smooth UX and resilient state.
-- Secure & Maintainable: Environment variable management, .gitignore hygiene, and config abstraction for real-world deployment.
+A hotel management dashboard for a fictional, rock-themed hotel. Hotel staff use it to run the front desk: manage cabins and bookings, check guests in and out, and track sales and occupancy.
 
-🛠️ Technologies Used
-- Frontend: React, Styled-Components, React Router
-- Backend: Firebase (Auth, Firestore, Storage)
-- Additional Libraries:
-- date-fns for date manipulation
-- react-hook-form for intuitive form handling
-- react-hot-toast for user-friendly notifications
-- recharts for interactive visualizations
-- react-error-boundary for graceful error recovery
+**Try it:** the app ships in **demo mode**, so it runs entirely in the browser with no backend. Hit **"Enter as demo user"** on the login page.
 
-📖 Installation & Setup
-Prerequisites
-- Node.js
-- Firebase project with Firestore, Auth, and Storage enabled
-Steps
-- Clone the repository:
-git clone https://github.com/your-username/harder-rock-hotel.git
-cd harder-rock-hotel
-- Install dependencies:
+## Features
+
+- **Dashboard:** bookings, sales, check-ins and occupancy for the last 7/30/90 days; a sales chart (cabin vs. extras), a stay-length chart, and today's arrivals and departures with one-click check-in/out
+- **Bookings:** search by guest, cabin or `#id`; filter by status; sort; paginate (all kept in the URL so views are shareable)
+- **New booking:** returning or new guest, visual cabin picker, live price summary. Validates dates, house rules, cabin capacity and double-bookings
+- **Booking details**, a **check-in flow** (optional breakfast add-on, payment confirmation) and a **printable invoice** (print or save as PDF)
+- **Cabins:** create, edit, duplicate and delete, with photo upload. Cabins with active bookings are protected from deletion
+- **Staff accounts**, **profile and avatar**, **password change**
+- **Settings:** house rules (min/max nights, max guests, breakfast price) and one-click sample-data reset
+- **Light / dark / system theme**, fully **responsive** (phone to widescreen), keyboard- and screen-reader-friendly
+
+## Tech
+
+| | |
+|---|---|
+| UI | React 19, React Router 8 (data router, route-level code splitting) |
+| Styling | Tailwind CSS 4 with semantic design tokens (light + dark) |
+| Server state | TanStack Query 5 (caching, prefetching, background refetch) |
+| Forms | React Hook Form |
+| Charts | Recharts 3 |
+| Backend | Demo adapter (localStorage) **or** Firebase (Auth, Firestore, Storage) |
+| Tooling | Vite 8, ESLint 10 (flat config + React Compiler-aware hooks rules) |
+
+### Architecture
+
+```
+src/
+  services/api.js        ← single data API used by the whole UI
+  services/demo/         ← in-browser backend (localStorage, simulated latency)
+  services/firebase/     ← Firebase backend, same function signatures
+  services/shared.js     ← filtering, joins and booking validation shared by both
+  data/                  ← sample cabins, guests and bookings + seed generator
+  features/<area>/       ← TanStack Query hooks and feature components
+  components/ui|layout/  ← design-system components
+  pages/                 ← one lazy-loaded module per route
+```
+
+The backend is picked at build time, and its module is loaded lazily, so the Firebase SDK is only downloaded when it's actually used. Sample booking dates are relative to "today" and roll forward automatically, so the demo never goes stale.
+
+## Getting started
+
+```bash
 npm install
-- Create a .env file:
-VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-VITE_FIREBASE_APP_ID=your-app-id
-- Start the development server:
-npm run dev
+npm run dev        # http://localhost:5173
+npm run build      # production build in dist/
+npm run lint
+```
 
+### Using Firebase instead of demo mode
 
+1. Create a Firebase project with **Authentication (email/password)**, **Firestore** and **Storage** enabled.
+2. Copy `.env.example` to `.env.local` and fill in your web-app config, with `VITE_DATA_SOURCE=firebase`.
+3. Deploy `firestore.rules` (signed-in staff can read/write).
+4. Create your first user in the Firebase console, log in, then go to **Settings → Reset sample data** to seed Firestore.
 
-🧪 Sample Data
-Use the built-in uploader to seed cabins, guests, and bookings. Images are dynamically loaded from Firebase Storage. Booking logic includes calculated prices, status transitions, and breakfast extras.
+## Deploying
 
-🤘 Inspiration
-This project blends modular code with rock aesthetics—like building a custom guitar, every detail is intentional. From theme layering to secure deployment, it’s designed to feel like a real product.
+`netlify.toml` is included (build command, publish directory and SPA redirect). Connect the repo on Netlify and it just works. For Firebase mode, add the `VITE_*` variables in Netlify's environment settings.
 
-Let me know if you want to add deployment instructions, contributor credits, or a visual preview section. You’ve built something expressive and tight—this README should reflect that.
+---
+
+Built by [Lucien Gaydos](https://github.com/darkstrings). The hotel, guests and bookings are fictional.

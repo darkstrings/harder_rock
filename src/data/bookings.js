@@ -1,0 +1,26 @@
+// Hand-written sample bookings. Days are relative to "today" when the data is seeded.
+// cabin / guest are 1-based indexes into data/cabins.js and data/guests.js.
+export const bookings = [
+  { created: -20, start: 0, end: 7, cabin: 1, guest: 2, numGuests: 1, hasBreakfast: true, isPaid: false,
+    observations: "I have a gluten allergy and would like to request a gluten-free breakfast." },
+  { created: -33, start: -23, end: -13, cabin: 1, guest: 3, numGuests: 2, hasBreakfast: true, isPaid: true },
+  { created: -27, start: 12, end: 18, cabin: 1, guest: 4, numGuests: 2, hasBreakfast: false, isPaid: false },
+  { created: -45, start: -45, end: -29, cabin: 2, guest: 5, numGuests: 2, hasBreakfast: false, isPaid: true },
+  { created: -2, start: 15, end: 18, cabin: 2, guest: 6, numGuests: 2, hasBreakfast: true, isPaid: true },
+  { created: -5, start: 33, end: 48, cabin: 2, guest: 7, numGuests: 2, hasBreakfast: true, isPaid: false },
+  { created: -65, start: -25, end: -20, cabin: 3, guest: 8, numGuests: 4, hasBreakfast: true, isPaid: true },
+  { created: -2, start: -2, end: 0, cabin: 3, guest: 9, numGuests: 3, hasBreakfast: false, isPaid: true,
+    observations: "We will be bringing our small dog with us." },
+  { created: -14, start: -14, end: -11, cabin: 3, guest: 10, numGuests: 4, hasBreakfast: true, isPaid: true },
+  { created: -30, start: -4, end: 8, cabin: 4, guest: 11, numGuests: 4, hasBreakfast: true, isPaid: true },
+  { created: -1, start: 12, end: 17, cabin: 4, guest: 12, numGuests: 4, hasBreakfast: true, isPaid: false },
+  { created: -3, start: 18, end: 19, cabin: 4, guest: 13, numGuests: 1, hasBreakfast: false, isPaid: true },
+  { created: 0, start: 14, end: 21, cabin: 5, guest: 14, numGuests: 5, hasBreakfast: true, isPaid: false },
+  { created: -6, start: -6, end: -4, cabin: 5, guest: 15, numGuests: 4, hasBreakfast: true, isPaid: true },
+  { created: -4, start: -4, end: -1, cabin: 5, guest: 16, numGuests: 6, hasBreakfast: false, isPaid: true },
+  { created: -3, start: 0, end: 11, cabin: 6, guest: 17, numGuests: 6, hasBreakfast: false, isPaid: true,
+    observations: "We will be checking in late, around midnight. Hope that's okay :)" },
+  { created: -16, start: -16, end: -9, cabin: 6, guest: 18, numGuests: 4, hasBreakfast: true, isPaid: true,
+    observations: "I will need a rollaway bed for one of the guests." },
+  { created: -18, start: -4, end: -1, cabin: 6, guest: 19, numGuests: 6, hasBreakfast: true, isPaid: true },
+];

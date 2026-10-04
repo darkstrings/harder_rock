@@ -1,60 +1,23 @@
-import styled from "styled-components";
+import { cn } from "../../lib/utils";
 
-const StyledStat = styled.div`
-  /* Box */
-  background-color: var(--color-grey-0);
-  border: 1px solid var(--color-grey-100);
-  border-radius: var(--border-radius-md);
+const tones = {
+  accent: "bg-accent-soft text-accent",
+  green: "bg-ok-soft text-ok",
+  blue: "bg-info-soft text-info",
+  yellow: "bg-warn-soft text-warn",
+};
 
-  padding: 1.6rem;
-  display: grid;
-  grid-template-columns: 6.4rem 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 1.6rem;
-  row-gap: 0.4rem;
-`;
-
-const Icon = styled.div`
-  grid-row: 1 / -1;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* Make these dynamic, based on the received prop */
-  background-color: var(--color-${(props) => props.color}-100);
-
-  & svg {
-    width: 3.2rem;
-    height: 3.2rem;
-    color: var(--color-${(props) => props.color}-700);
-  }
-`;
-
-const Title = styled.h5`
-  align-self: end;
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  font-weight: 600;
-  color: var(--color-grey-500);
-`;
-
-const Value = styled.p`
-  font-size: 2.4rem;
-  line-height: 1;
-  font-weight: 500;
-`;
-
-function Stat({ icon, title, value, color }) {
+export default function Stat({ icon: Icon, title, value, hint, tone = "accent" }) {
   return (
-    <StyledStat>
-      <Icon color={color}>{icon}</Icon>
-      <Title>{title}</Title>
-      <Value>{value}</Value>
-    </StyledStat>
+    <div className="card flex items-center gap-4 p-5">
+      <div className={cn("grid size-12 shrink-0 place-items-center rounded-xl", tones[tone])}>
+        <Icon className="size-6" aria-hidden="true" />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold tracking-wider text-muted uppercase">{title}</p>
+        <p className="font-display text-4xl leading-tight tracking-wide tabular-nums">{value}</p>
+        {hint && <p className="truncate text-xs text-subtle">{hint}</p>}
+      </div>
+    </div>
   );
 }
-
-export default Stat;
